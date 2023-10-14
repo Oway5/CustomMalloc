@@ -1,4 +1,11 @@
-void free(void *ptr) {
+#include <stdio.h>
+#include <stdlib.h>
+#include "malloc.h"
+
+#define MEMSIZE 4096  // or whatever size you need
+
+
+void myfree(void *ptr, char *file, int line){
 
     // Moves the pointer address back 8 bytes to start of the chunk's header.
     ptr = ptr - 8;
@@ -46,6 +53,12 @@ void free(void *ptr) {
     }
     else if(case3 == 0) {
         printf("You called free() on a chunk that was already free.");
+    }
+
+}
+void *mymalloc(size_t size, char *file, int line){
+    if(size==0){
+        print
     }
 
 }
