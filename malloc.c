@@ -3,7 +3,8 @@
 #include "mymalloc.h"
 #include <stdbool.h>
 
-#define MEMSIZE 4096  //not sure if this is the size we want. we can also make a macro from the .h and make it a static var here
+//#define MEMSIZE 4096  //not sure if this is the size we want. we can also make a macro from the .h and make it a static var here
+//moved memsize to .h cause I'm still not sure what we're supposed to do with it and I'm too lazy to read the instructions so we gonna make it a macro in the .h
 #define ROUNDUP8(x) (((x) + 7) & (-7))
 
 static char memory[MEMSIZE];
@@ -13,56 +14,54 @@ void* memoryEnd = (void*)(memory + MEMSIZE); // end of memory block
 
 
 void myfree(void *ptr, char *file, int line){
-
-    // Moves the pointer address back 8 bytes to start of the chunk's header.
-    ptr = ptr - 8;
-    copyPtr = headPtr;// Copies over start of linked list for iteration.
-
-    case1 = 0;// Checks if Calling free() with an address not obtained from malloc()
-    case2 = 0;// Checks if Calling free() with an address not at the start of a chunk.
-    case3 = 1;// Checks if Calling free() a second time on the same pointer.
-
-    // Checks if address is within array range.
-    if(ptr >= headPtr || ptr <= headPtr + MEMLENGTH) {
-        case1 = 1;
+    if (!ptr) {
+        printf("ERROR: Attempt to free NULL pointer in file %s at line %d\n", file, line);
+        return;
+    }
+    if (ptr < (void*)memory || ptr >= (void*)(memory + MEMSIZE)) {
+        printf("ERROR: Pointer out of bounds in file %s at line %d\n", file, line);
+        return;
     }
 
-    // Checks if address is the start of a chunk.
-    while(copyPtr != NULL) {
+    header *current = (header *)memory;
+    header *prev = NULL;
+    header *toFree = (header *)((char *)ptr - sizeof(header));
 
-        if(copyPtr == ptr) {
-            case2 = 1;
+    // Validate the pointer and find its header in the memory block
+    while (current != NULL && (char *)current < memory + MEMSIZE) {
+        if (current == toFree) {
             break;
         }
-        copyPtr = copyPtr -> next;// Naviagates to next header.
+        prev = current;
+        current = (header *)((char *)current + sizeof(header) + current->len);
     }
 
-    // Checks if the header block is already free.
-    if(ptr -> hasData == 0) {
-        case3 = 0;
+    // Check if the pointer was not found or is already freed
+    if (current != toFree || current->isFree) {
+        printf("ERROR: Invalid free operation in file %s at line %d\n", file, line);
+        return;
     }
 
-    // If all error cases are mititgated.
-    if(case1 && case2 && case3){
-        // Changes the header's hasData field to false.
-        ptr -> hasData = 0;
-        // Calls method to combine free chunks.
-        coalesceFreeChunks();
+    // Mark the chunk as free
+    current->isFree = 1;
 
-    }
-
-    // Prints error statements.
-    else if(case1 == 0) {
-        printf("You called free() with an address that was not within the allocated memory block.");
-    }
-    else if(case2 == 0) {
-        printf("You called free() with an address that was not at the start of the chunk.");
-    }
-    else if(case3 == 0) {
-        printf("You called free() on a chunk that was already free.");
+    // Coalesce with next chunk if it's free
+    header *next = (header *)((char *)current + sizeof(header) + current->len);
+    if ((char *)next < memory + MEMSIZE && next->isFree) {
+        current->len += sizeof(header) + next->len;
+        current->next = next->next;
     }
 
+    // Coalesce with previous chunk if it's free
+    if (prev != NULL && prev->isFree) {
+        prev->len += sizeof(header) + current->len;
+        prev->next = current->next;
+    }
 }
+
+
+
+
 int GetChunkSize(header* h) {
     return h->len;
 }
@@ -121,9 +120,9 @@ void initializeMemory() {
 void *mymalloc(size_t size, char *file, int line){
     static int isMemoryInitialized = 0;
     if (!isMemoryInitialized) {
-    initializeMemory();
-    isMemoryInitialized = 1;
-}
+        initializeMemory();
+        isMemoryInitialized = 1;
+    }
 
     if (size == 0) {
         fprintf(stderr, "Error: cannot allocate 0 bytes\n");
@@ -135,28 +134,11 @@ void *mymalloc(size_t size, char *file, int line){
     void* res = NULL;
     header* start = (header*)memoryStart;
 
-    while (start < memoryEnd) {
+    while ((void*)start < memoryEnd) {
         int chunkSize = GetChunkSize(start);
         bool isFree = IsFree(start);
 
-        // if (chunkSize == 0 && isFree == false) {
-        //     SetChunkSize(start, size + 8);
-        //     MarkAsAllocated(start);
-        //     res = start + 8;
-        //     isFree = true;
-        //     SetNextChunkSize(start, memoryEnd - (start + size + 8));
-        //     return res;
-        // }
-
-        // if (isFree == false && chunkSize >= size + 8) {
-        //     SetChunkSize(start, size + 8);
-        //     MarkAsAllocated(start);
-        //     res = start + 8;
-        //     if (NextChunkIsUninitialized(start)) {
-        //         SetNextChunkSize(start, chunkSize - (size + 8));
-        //     }
-        //     return res;
-        // }
+        // this is where the comments below would've been before I changed them up
         if (isFree && chunkSize >= size + 8) {
             if (chunkSize >= size + sizeof(header) + 8) {
                 header* newHeader = (header*)((char*)start + sizeof(header) + size);
@@ -179,3 +161,21 @@ void *mymalloc(size_t size, char *file, int line){
     return NULL;
 
 }
+//// if (chunkSize == 0 && isFree == false) {
+        //     SetChunkSize(start, size + 8);
+        //     MarkAsAllocated(start);
+        //     res = start + 8;
+        //     isFree = true;
+        //     SetNextChunkSize(start, memoryEnd - (start + size + 8));
+        //     return res;
+        // }
+
+        // if (isFree == false && chunkSize >= size + 8) {
+        //     SetChunkSize(start, size + 8);
+        //     MarkAsAllocated(start);
+        //     res = start + 8;
+        //     if (NextChunkIsUninitialized(start)) {
+        //         SetNextChunkSize(start, chunkSize - (size + 8));
+        //     }
+        //     return res;
+        // }
