@@ -1,8 +1,8 @@
 Rayyan & Oways Malloc Proj
 
 The name and netID of both partners.
-    Rayyan Sarkhot - rs2105
-    Oways Jaffer - 
+- Rayyan Sarkhot - rs2105
+- Oways Jaffer - 
 
 Your test plan
 
