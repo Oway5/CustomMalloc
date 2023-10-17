@@ -1,4 +1,4 @@
-Rayyan & Oways Malloc Proj
+**Rayyan & Oways Malloc Project**
 
 The name and netID of both partners.
 - Rayyan Sarkhot - rs2105
