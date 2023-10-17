@@ -5,7 +5,7 @@
 
 //#define MEMSIZE 4096  //not sure if this is the size we want. we can also make a macro from the .h and make it a static var here
 //moved memsize to .h cause I'm still not sure what we're supposed to do with it and I'm too lazy to read the instructions so we gonna make it a macro in the .h
-#define ROUNDUP8(x) (((x) + 7) & (-7))
+#define ROUNDUP8(x) ( ( (x) + 7 ) & (-7))
 
 static char memory[MEMSIZE];
 void* memoryStart = (void*)memory;  // Start of  memory block
@@ -128,9 +128,9 @@ void *mymalloc(size_t size, char *file, int line){
         fprintf(stderr, "Error: cannot allocate 0 bytes\n");
         return NULL;
     }
-
+    // printf("INITIAL SIZE: %zu", size);
     size = ROUNDUP8(size);
-
+    // printf("SIZE AFTER: %zu", size);
     void* res = NULL;
     header* start = (header*)memoryStart;
 
@@ -152,7 +152,7 @@ void *mymalloc(size_t size, char *file, int line){
             return (char*)start + sizeof(header);
         }
 
-        if (isFree == true || chunkSize < size + 8) {
+        if (isFree == 0 || chunkSize < size + 8) {
             start = GetNextChunk(start);
         }
     }
