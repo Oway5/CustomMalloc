@@ -90,5 +90,11 @@ int main() {
         printf("Task %d: %.6f\n", task + 1, sum / NUM_TRIALS);
     }
 
+    // Task 6: Try to free an already free pointer.
+    char *ptr = (char *)mymalloc(20, __FILE__, __LINE__);
+    myfree(ptr, __FILE__, __LINE__);
+    myfree(ptr, __FILE__, __LINE__);
+
+
     return 0;
 }

@@ -3,7 +3,6 @@
 #include "mymalloc.h"
 #include <stdbool.h>
 
-//#define MEMSIZE 4096  //not sure if this is the size we want. we can also make a macro from the .h and make it a static var here
 //moved memsize to .h cause I'm still not sure what we're supposed to do with it and I'm too lazy to read the instructions so we gonna make it a macro in the .h
 #define ROUNDUP8(x) ( ( (x) + 7 ) & (-7))
 
