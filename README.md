@@ -1,9 +1,5 @@
 **Rayyan & Oways Malloc Project**
 
-The name and netID of both partners.
-- Rayyan Sarkhot - rs2105 
-- Oways Jaffer - omj9
-
 Your test plan:
 - The test plan entails stress testing the two functions with several types of arguments. The types of these arguments are 1 byte objects, 7 byte objects, testing to see if the assigned value is accessible and accurate, and checking to see if one of the error cases actually functions properly.
 
